@@ -472,7 +472,342 @@ Ratings is also added to each of the books information when loaded. A book will 
 Iterates through each of the book results and if the cover is clicked, the bookpageGUI will be called to load the same book in the bookPageGUI format via its google book id.
 
 
+## reviewPageUI Class
+
+        Ui_reviewpage, RP_baseClass = uic.loadUiType("UIs/review_page.ui")
+        class reviewPageGUI(RP_baseClass, Ui_reviewpage):
+            def __init__(self, page_stack):
+                self.page_stack = page_stack
+                super(reviewPageGUI,self).__init__()
+                self.setupUi(self)
+                
+                # Apply stylesheet for dark mode compatibility
+                dark_mode_stylesheet = """
+                    QLineEdit { color: black; background-color: white; }
+                    QTextEdit { color: black; background-color: white; }
+                    QLabel { color: black; }
+                """
+
+            
+                book_page = page_stack.widget((page_stack.count() - 1)) #Gets book page as current page is not added in stack till all its methods are instantiated 
+                book_cover = book_page.label
+                review_book_id = book_page.google_book_id.text()
+                book_title = book_page.title.text()
+
+                self.BookLabel.setPixmap(book_cover.pixmap())
+                self.title.setText(book_title)
+                self.google_book_id.setText(review_book_id)
+                self.setStyleSheet(dark_mode_stylesheet)
+                self.homeButton.clicked.connect(lambda : homeButton(self.page_stack))
+                self.SearchButton.clicked.connect(lambda : bookSearchButtonClicked(self.page_stack))
+                self.friendsButton.clicked.connect(lambda : friendButtonClicked(self.page_stack))
+                self.profileButton.clicked.connect(lambda : profileButtonClicked(self.page_stack))
+                self.goBackButton.clicked.connect(lambda : goBackButtonClicked(self.page_stack))
+                self.addReviewButton.clicked.connect(self.addReveiew)
+                self.deleteReviewButton.clicked.connect(self.deleteReview)
+
+                with psycopg.connect("REDACTED") as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT book_id FROM books WHERE google_book_id = %s", (review_book_id,))
+                        database_book_id = cur.fetchone()
+                        if database_book_id:
+                            result = database_book_id[0]
+                            cur.execute("SELECT review_text,usr_id,rating FROM reviews WHERE book_id =%s",(result,))
+                            reviews = cur.fetchall()
+                            for review in reviews:
+                                if self.reviewGroupBox.layout() is None:
+                                    self.reviewGroupBox.setLayout(QVBoxLayout())                   
+                                reviewText = review[0]
+                                username_id = int(review[1])
+                                user_rating = review[2]
+                                groupbox = QGroupBox("reveiewResult")
+                                policy = groupbox.sizePolicy()
+                                policy.setHorizontalPolicy(QSizePolicy.Policy.Expanding)
+                                policy.setVerticalPolicy(QSizePolicy.Policy.Fixed)
+                                groupbox.setSizePolicy(policy)
+                                groupbox.setMaximumWidth(800)
+                                cur.execute("SELECT username from users WHERE usr_id = %s",(username_id,))
+                                username = cur.fetchone()[0]
+                                layout = QVBoxLayout()
+                                user = QLabel(username)
+                                layout.addWidget(user)
+                                rating = QLabel(f"Rating: {user_rating} Stars")
+                                layout.addWidget(rating)
+                                review = QTextEdit(reviewText)
+                                layout.addWidget(review)
+                                groupbox.setLayout(layout)
+                                self.reviewGroupBox.layout().addWidget(groupbox)
+            def deleteReview(self):
+                with psycopg.connect("REDACTED") as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT book_id FROM books where google_book_id = %s",(self.google_book_id.text(),))
+                        review_book_id = cur.fetchone()[0]
+                        cur.execute("SELECT usr_id FROM users WHERE username = %s", (CURRENT_USER,))
+                        user_id = int(cur.fetchone()[0])
+                        cur.execute("DELETE FROM reviews WHERE book_id = %s AND usr_id = %s", (review_book_id, user_id))
+                        conn.commit()
+                if self.reviewGroupBox.layout():
+                    results_layout = self.reviewGroupBox.layout()
+                    for children in self.reviewGroupBox.children():
+                        item = results_layout.takeAt(0)
+                        if item is not None:
+                            widget = item.widget()
+                            if widget is not None:
+                                widget.setParent(None)
+                                widget.deleteLater() 
+                with psycopg.connect("REDACTED") as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT book_id FROM books WHERE google_book_id = %s",(self.google_book_id.text(),))
+                        database_book_id = cur.fetchone()
+                        if database_book_id:
+                            result = database_book_id[0]
+                            cur.execute("SELECT review_text,usr_id,rating FROM reviews WHERE book_id =%s",(result,))
+                            reviews = cur.fetchall()
+                            for review in reviews:
+                                if self.reviewGroupBox.layout() is None:
+                                    self.reviewGroupBox.setLayout(QVBoxLayout())  
+                                reviewText = review[0]
+                                user_rating = review[2]
+                                groupbox = QGroupBox("reveiewResult")
+                                user_id = int(review[1])
+                                cur.execute("SELECT username from users where usr_id = %s",(user_id,))
+                                username = cur.fetchone()[0]
+                                policy = groupbox.sizePolicy()
+                                policy.setHorizontalPolicy(QSizePolicy.Policy.Expanding)
+                                policy.setVerticalPolicy(QSizePolicy.Policy.Fixed)
+                                groupbox.setSizePolicy(policy)
+                                groupbox.setMaximumWidth(800)
+                                groupbox.setMaximumHeight(200)
+                                layout = QVBoxLayout()
+                                user = QLabel(username)
+                                layout.addWidget(user)
+                                rating = QLabel(f"Rating: {user_rating} Stars")
+                                layout.addWidget(rating)
+                                review = QTextEdit(reviewText)
+                                layout.addWidget(review)
+                                groupbox.setLayout(layout)
+                                self.reviewGroupBox.layout().addWidget(groupbox)
+    def addReveiew(self):
+        if self.reviewGroupBox.layout() is None:
+            self.reviewGroupBox.setLayout(QVBoxLayout())    
+        with psycopg.connect("REDACTED") as conn:
+            with conn.cursor() as cur: 
+                cur.execute("SELECT book_id FROM books where google_book_id = %s",(self.google_book_id.text(),))
+                result = cur.fetchone()
+                if result is None:
+                    cur.execute("INSERT INTO books (title, google_book_id) VALUES (%s,%s) RETURNING book_id",(self.title.text(),self.google_book_id.text()))
+                    book_id = cur.fetchone()[0]
+                else:
+                    book_id = result[0]   
+                cur.execute("SELECT usr_id FROM users WHERE username = %s",(CURRENT_USER,))  
+                user_id = int(cur.fetchone()[0])
+                cur.execute("SELECT book_id, usr_id, rating FROM reviews where book_id = %s and usr_id = %s",(book_id,user_id))
+                review_exists = cur.fetchone()
+                if review_exists:
+                    self.Error_message.setEnabled(True)
+                    self.Error_message.setText("You have already reviewed this book.")
+                    self.Error_message.setStyleSheet("color: red;")
+                else:
+                    reviewText = self.textEdit.toPlainText()
+                    groupbox = QGroupBox("reveiewResult")
+                    policy = groupbox.sizePolicy()
+                    policy.setHorizontalPolicy(QSizePolicy.Policy.Expanding)
+                    policy.setVerticalPolicy(QSizePolicy.Policy.Fixed)
+                    groupbox.setSizePolicy(policy)
+                    groupbox.setMaximumWidth(800)
+                    groupbox.setMaximumHeight(200)
+                    layout = QVBoxLayout()
+                    user = QLabel(CURRENT_USER)
+                    layout.addWidget(user)
+                    rating = QLabel(f"Rating: {self.RatingBox.currentText()}")
+                    layout.addWidget(rating)
+                    review = QTextEdit(reviewText)
+                    layout.addWidget(review)
+                    groupbox.setLayout(layout)
+                    self.reviewGroupBox.layout().addWidget(groupbox)
+                    self.textEdit.setPlainText("")
+                    cur.execute("SELECT book_id FROM books WHERE google_book_id = %s",(self.google_book_id.text(),))
+                    book_id = cur.fetchone()[0]
+                    cur.execute("INSERT INTO reviews(book_id,usr_id,review_text,rating) VALUES (%s,%s,%s,%s)",(book_id,user_id,reviewText,float(self.RatingBox.currentText())))
+
+
+                                
+
+set Up the Reveiw Page UI page
+
+        Ui_reviewpage, RP_baseClass = uic.loadUiType("UIs/review_page.ui")
+                class reviewPageGUI(RP_baseClass, Ui_reviewpage):
+                    def __init__(self, page_stack):
+                        self.page_stack = page_stack
+                        super(reviewPageGUI,self).__init__()
+                        self.setupUi(self)
+                        
+                        # Apply stylesheet for dark mode compatibility
+                        dark_mode_stylesheet = """
+                            QLineEdit { color: black; background-color: white; }
+                            QTextEdit { color: black; background-color: white; }
+                            QLabel { color: black; }
+                        """
+Load UI for Review Page
+
+        
+                book_page = page_stack.widget((page_stack.count() - 1)) #Gets book page as current page is not added in stack till all its methods are instantiated 
+                book_cover = book_page.label
+                review_book_id = book_page.google_book_id.text()
+                book_title = book_page.title.text()
+                self.BookLabel.setPixmap(book_cover.pixmap())
+                self.title.setText(book_title)
+                self.google_book_id.setText(review_book_id)
+                self.setStyleSheet(dark_mode_stylesheet)
+
+Retrive the google book id, title and the books image cover from the previous book page and load and set their corresponding widgets in the review page to these values
+                
+
+                self.homeButton.clicked.connect(lambda : homeButton(self.page_stack))
+                self.SearchButton.clicked.connect(lambda : bookSearchButtonClicked(self.page_stack))
+                self.friendsButton.clicked.connect(lambda : friendButtonClicked(self.page_stack))
+                self.profileButton.clicked.connect(lambda : profileButtonClicked(self.page_stack))
+                self.goBackButton.clicked.connect(lambda : goBackButtonClicked(self.page_stack))
+                self.addReviewButton.clicked.connect(self.addReveiew)
+                self.deleteReviewButton.clicked.connect(self.deleteReview)
+
+Basic buttons that do the same functionality mentioned before
+
+- AddReviewButton takes text from the user input field and adds the review to the book if the user has not made a review yet
+
+- deleteReviewButton deletes a review if the user has made a review 
 
 
 
 
+                with psycopg.connect("REDACTED") as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT book_id FROM books WHERE google_book_id = %s", (review_book_id,))
+                        database_book_id = cur.fetchone()
+                        if database_book_id:
+                            result = database_book_id[0]
+                            cur.execute("SELECT review_text,usr_id,rating FROM reviews WHERE book_id =%s",(result,))
+                            reviews = cur.fetchall()
+                            for review in reviews:
+                                if self.reviewGroupBox.layout() is None:
+                                    self.reviewGroupBox.setLayout(QVBoxLayout())                   
+                                reviewText = review[0]
+                                username_id = int(review[1])
+                                user_rating = review[2]
+                                groupbox = QGroupBox("reveiewResult")
+                                policy = groupbox.sizePolicy()
+                                policy.setHorizontalPolicy(QSizePolicy.Policy.Expanding)
+                                policy.setVerticalPolicy(QSizePolicy.Policy.Fixed)
+                                groupbox.setSizePolicy(policy)
+                                groupbox.setMaximumWidth(800)
+                                cur.execute("SELECT username from users WHERE usr_id = %s",(username_id,))
+                                username = cur.fetchone()[0]
+                                layout = QVBoxLayout()
+                                user = QLabel(username)
+                                layout.addWidget(user)
+                                rating = QLabel(f"Rating: {user_rating} Stars")
+                                layout.addWidget(rating)
+                                review = QTextEdit(reviewText)
+                                layout.addWidget(review)
+                                groupbox.setLayout(layout)
+                                self.reviewGroupBox.layout().addWidget(groupbox)
+
+Connect to our database and check using our google_book_id if there is a matching value in our books table in the database. If there are no mathcing results, the book has no reviews and nothing else is done to the page. If there is a matching result, we get all the reviews from our review Table and get the username of the user who made the review, the rating they left and the review they added. These values are added to their corresponding widgets and added to our reviewPageUI
+
+        def deleteReview(self):
+                with psycopg.connect("REDACTED") as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT book_id FROM books where google_book_id = %s",(self.google_book_id.text(),))
+                        review_book_id = cur.fetchone()[0]
+                        cur.execute("SELECT usr_id FROM users WHERE username = %s", (CURRENT_USER,))
+                        user_id = int(cur.fetchone()[0])
+                        cur.execute("DELETE FROM reviews WHERE book_id = %s AND usr_id = %s", (review_book_id, user_id))
+                        conn.commit()
+                if self.reviewGroupBox.layout():
+                    results_layout = self.reviewGroupBox.layout()
+                    for children in self.reviewGroupBox.children():
+                        item = results_layout.takeAt(0)
+                        if item is not None:
+                            widget = item.widget()
+                            if widget is not None:
+                                widget.setParent(None)
+                                widget.deleteLater() 
+                with psycopg.connect("REDACTED") as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT book_id FROM books WHERE google_book_id = %s",(self.google_book_id.text(),))
+                        database_book_id = cur.fetchone()
+                        if database_book_id:
+                            result = database_book_id[0]
+                            cur.execute("SELECT review_text,usr_id,rating FROM reviews WHERE book_id =%s",(result,))
+                            reviews = cur.fetchall()
+                            for review in reviews:
+                                if self.reviewGroupBox.layout() is None:
+                                    self.reviewGroupBox.setLayout(QVBoxLayout())  
+                                reviewText = review[0]
+                                user_rating = review[2]
+                                groupbox = QGroupBox("reveiewResult")
+                                user_id = int(review[1])
+                                cur.execute("SELECT username from users where usr_id = %s",(user_id,))
+                                username = cur.fetchone()[0]
+                                policy = groupbox.sizePolicy()
+                                policy.setHorizontalPolicy(QSizePolicy.Policy.Expanding)
+                                policy.setVerticalPolicy(QSizePolicy.Policy.Fixed)
+                                groupbox.setSizePolicy(policy)
+                                groupbox.setMaximumWidth(800)
+                                groupbox.setMaximumHeight(200)
+                                layout = QVBoxLayout()
+                                user = QLabel(username)
+                                layout.addWidget(user)
+                                rating = QLabel(f"Rating: {user_rating} Stars")
+                                layout.addWidget(rating)
+                                review = QTextEdit(reviewText)
+                                layout.addWidget(review)
+                                groupbox.setLayout(layout)
+                                self.reviewGroupBox.layout().addWidget(groupbox)
+
+Once the user has pressed the delete Review Button, a query in our database is done first in our users table to find the users corresponding usr_id and then in our books table to find the corresponding book id in our books table using the google book id. Both of these ids are then checked against our reviews table to find a matching result and if one is found, the users review is then deleted from the database and then our widget containing all our reviews is then rebuilt to reflect the review being deleted.
+
+    def addReveiew(self):
+        if self.reviewGroupBox.layout() is None:
+            self.reviewGroupBox.setLayout(QVBoxLayout())    
+        with psycopg.connect("REDACTED") as conn:
+            with conn.cursor() as cur: 
+                cur.execute("SELECT book_id FROM books where google_book_id = %s",(self.google_book_id.text(),))
+                result = cur.fetchone()
+                if result is None:
+                    cur.execute("INSERT INTO books (title, google_book_id) VALUES (%s,%s) RETURNING book_id",(self.title.text(),self.google_book_id.text()))
+                    book_id = cur.fetchone()[0]
+                else:
+                    book_id = result[0]   
+                cur.execute("SELECT usr_id FROM users WHERE username = %s",(CURRENT_USER,))  
+                user_id = int(cur.fetchone()[0])
+                cur.execute("SELECT book_id, usr_id, rating FROM reviews where book_id = %s and usr_id = %s",(book_id,user_id))
+                review_exists = cur.fetchone()
+                if review_exists:
+                    self.Error_message.setEnabled(True)
+                    self.Error_message.setText("You have already reviewed this book.")
+                    self.Error_message.setStyleSheet("color: red;")
+                else:
+                    reviewText = self.textEdit.toPlainText()
+                    groupbox = QGroupBox("reveiewResult")
+                    policy = groupbox.sizePolicy()
+                    policy.setHorizontalPolicy(QSizePolicy.Policy.Expanding)
+                    policy.setVerticalPolicy(QSizePolicy.Policy.Fixed)
+                    groupbox.setSizePolicy(policy)
+                    groupbox.setMaximumWidth(800)
+                    groupbox.setMaximumHeight(200)
+                    layout = QVBoxLayout()
+                    user = QLabel(CURRENT_USER)
+                    layout.addWidget(user)
+                    rating = QLabel(f"Rating: {self.RatingBox.currentText()}")
+                    layout.addWidget(rating)
+                    review = QTextEdit(reviewText)
+                    layout.addWidget(review)
+                    groupbox.setLayout(layout)
+                    self.reviewGroupBox.layout().addWidget(groupbox)
+                    self.textEdit.setPlainText("")
+                    cur.execute("SELECT book_id FROM books WHERE google_book_id = %s",(self.google_book_id.text(),))
+                    book_id = cur.fetchone()[0]
+                    cur.execute("INSERT INTO reviews(book_id,usr_id,review_text,rating) VALUES (%s,%s,%s,%s)",(book_id,user_id,reviewText,float(self.RatingBox.currentText())))
+
+Once the user adds a review to a book, we first check to see if the book exists in our database. If it does not, a new book insert is added to the database with its mathcing google_book_id and we retrive the book id afterwads. If the book does exsist in our database, we also retrive the book Id.Afterwards, a check is done using book and usr id to see if there are any corresponding matches of Ids in the review table. If there are, an error message is displayed to the user saying that they have already left a review to the book and are unable to add a new one. Otherwise the review is addded to our database and the widget containing all our reviews is rebuilt to display the new review.
