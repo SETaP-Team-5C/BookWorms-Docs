@@ -295,3 +295,77 @@ then created and assigned values from the api call.
 Updates the labels on screen to match data retrieved from API call.
 
 ---
+
+### friendsPageUI Class
+
+    Ui_friendspage, FP_baseClass = uic.loadUiType("UIs/friends_page.ui")
+    class friendsPageGUI(FP_baseClass, Ui_friendspage):
+        def __init__(self, page_stack):
+            self.page_stack = page_stack
+            super(friendsPageGUI,self).__init__()
+            self.setupUi(self)
+            
+            # Apply stylesheet for dark mode compatibility
+            dark_mode_stylesheet = """
+                QLineEdit { color: black; background-color: white; }
+                QTextEdit { color: black; background-color: white; }
+                QLabel { color: black; }
+            """
+            self.setStyleSheet(dark_mode_stylesheet)
+
+            self.homeButton.clicked.connect(lambda: homeButton(self.page_stack))
+            self.searchButton.clicked.connect(lambda : bookSearchButtonClicked(self.page_stack))
+            self.profileButton.clicked.connect(lambda : profileButtonClicked(self.page_stack))
+            self.friendsButton.clicked.connect(lambda: friendButtonClicked(self.page_stack))
+            self.addFriendButton.clicked.connect(self.on_add_friend_button_clicked)
+
+        def on_add_friend_button_clicked(self):
+            self.page_stack.addWidget(AddFriendPageGUI(self.page_stack))
+            self.page_stack.setCurrentIndex(self.page_stack.currentIndex()+1)
+
+---
+
+`Ui_friendspage, FP_baseClass = uic.loadUiType("UIs/friends_page.ui")`
+
+Initalises the UI for friendsPage as well as the baseClass
+
+---
+
+    def __init__(self, page_stack):
+        self.page_stack = page_stack
+        super(friendsPageGUI,self).__init__()
+        self.setupUi(self)
+        
+        # Apply stylesheet for dark mode compatibility
+        dark_mode_stylesheet = """
+            QLineEdit { color: black; background-color: white; }
+            QTextEdit { color: black; background-color: white; }
+            QLabel { color: black; }
+        """
+        self.setStyleSheet(dark_mode_stylesheet)
+
+Initialises the class, assigns variables such as `self.page_stack` and sets up the UI
+and applies a stylesheet to it.
+
+---
+
+    self.homeButton.clicked.connect(lambda: homeButton(self.page_stack))
+    self.searchButton.clicked.connect(lambda : bookSearchButtonClicked(self.page_stack))
+    self.profileButton.clicked.connect(lambda : profileButtonClicked(self.page_stack))
+    self.friendsButton.clicked.connect(lambda: friendButtonClicked(self.page_stack))
+    self.addFriendButton.clicked.connect(self.on_add_friend_button_clicked)
+
+Adds event listeners to the home buttons and the add friend button. When clicked the
+corresponding function is called.
+
+---
+
+    def on_add_friend_button_clicked(self):
+        self.page_stack.addWidget(AddFriendPageGUI(self.page_stack))
+        self.page_stack.setCurrentIndex(self.page_stack.currentIndex()+1)
+
+When the add friend button is clicked it brings the add friend page to the top of the page stack
+and increments the page stack index.
+
+---
+
