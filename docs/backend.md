@@ -368,4 +368,44 @@ When the add friend button is clicked it brings the add friend page to the top o
 and increments the page stack index.
 
 ---
+### addFriendPage Class (Not Implemented)
 
+**! Currently this page is not implemented !**
+
+    UI_addfriendpage, AFP_baseClass = uic.loadUiType("UIs/add_friend_page.ui")
+        class AddFriendPageGUI(UI_addfriendpage, AFP_baseClass):
+            def __init__(self, page_stack):
+                self.page_stack = page_stack
+                super(AddFriendPageGUI,self).__init__()
+                self.setupUi(self)
+                
+                # Apply stylesheet for dark mode compatibility
+                dark_mode_stylesheet = """
+                    QLineEdit { color: black; background-color: white; }
+                    QTextEdit { color: black; background-color: white; }
+                    QLabel { color: black; }
+                """
+                self.setStyleSheet(dark_mode_stylesheet)
+
+`UI_addfriendpage, AFP_baseClass = uic.loadUiType("UIs/add_friend_page.ui")`
+
+Initalises the UI for addFriendsPage as well as the baseClass
+
+---
+
+    def __init__(self, page_stack):
+        self.page_stack = page_stack
+        super(AddFriendPageGUI,self).__init__()
+        self.setupUi(self)
+        
+        # Apply stylesheet for dark mode compatibility
+        dark_mode_stylesheet = """
+            QLineEdit { color: black; background-color: white; }
+            QTextEdit { color: black; background-color: white; }
+            QLabel { color: black; }
+        """
+        self.setStyleSheet(dark_mode_stylesheet)
+
+Initialises the class and variables. Sets up the UI and assigns a style sheet to it.
+
+---
