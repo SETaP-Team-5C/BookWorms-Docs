@@ -94,3 +94,83 @@ Imports for this program as well as craeting `CURRENT_USER` variable. This tells
             self.deleteButton.clicked.connect(lambda: remove_book_1_from_reading_list(page_stack))
             self.deleteButton_2.clicked.connect(lambda: remove_book_2_from_reading_list(page_stack))
             self.deleteButton_3.clicked.connect(lambda: remove_book_3_from_reading_list(page_stack))
+
+--------------------------------------------------------------------------------------------------------------
+
+`UI_Homepage, HP_baseClass = uic.loadUiType("UIs/home_page.ui")`
+
+Loads the UI file and create a base class.
+
+--------------------------------------------------------------------------------------------------------------
+
+    def __init__(self, page_stack):
+                self.page_stack = page_stack
+
+
+                super(homePageUI,self).__init__()
+                self.setupUi(self)
+                
+                # Apply stylesheet for dark mode compatibility
+                dark_mode_stylesheet = """
+                    QLineEdit { color: black; background-color: white; }
+                    QTextEdit { color: black; background-color: white; }
+                    QLabel { color: black; }
+                """
+                self.setStyleSheet(dark_mode_stylesheet)
+
+
+Initialising the class, UI and sets the stylesheet for this page.
+
+
+--------------------------------------------------------------------------------------------------------------
+
+    self.bookreadinglist = [self.Reading1,self.Reading2,self.Reading3]
+    self.bookreccomendationlist = [self.Reccomendation1,self.Reccomendation2,self.Reccomendation3]
+    self.FriendsReadinglist = [self.Friendreading1,self.Friendreading2,self.Friendreading3]
+
+
+    Pixmap1 = QPixmap("imgs/placeholderimage1.webp")
+    Pixmap2 = QPixmap("imgs/placeholderimage2.jpg")
+    Pixmap3 = QPixmap("imgs/placeholderimage3.png")
+
+Creates reading, recommendation and freinds reading lists as well as creating placeholder images for book covers.
+
+--------------------------------------------------------------------------------------------------------------
+
+    self.homeButton.clicked.connect(lambda: homeButton(page_stack))
+    self.searchButton.clicked.connect(lambda : bookSearchButtonClicked(page_stack))
+    self.profileButton.clicked.connect(lambda : profileButtonClicked(page_stack))
+    self.friendsButton.clicked.connect(lambda : friendButtonClicked(page_stack))
+
+Creates event listeners on the home bar buttons. If a button is pressed it calls the corresponding function.
+
+--------------------------------------------------------------------------------------------------------------
+
+    for book in self.bookreadinglist:
+        if book.parent().findChild(QLabel,"book_id_label"):
+            book.clicked.connect(lambda b=book: on_book_cover_clicked(page_stack,b.parent().findChild(QLabel,"book_id_label").text()))
+        elif book.parent().findChild(QLabel,"label_3"):
+            book.clicked.connect(lambda b=book: on_book_cover_clicked(page_stack,b.parent().findChild(QLabel,"label_3").text()))
+        else:
+            book.clicked.connect(lambda b=book: on_book_cover_clicked(page_stack,b.parent().findChild(QLabel,"label_4").text()))
+
+Creates event listeners on the book covers, so that if they are clicked it takes the user to the book description page.
+
+--------------------------------------------------------------------------------------------------------------
+
+    self.book_id_label.setVisible(False)
+    self.label_3.setVisible(False)
+    self.label_4.setVisible(False)
+    self.deleteButton.setVisible(False)
+    self.deleteButton_2.setVisible(False)
+    self.deleteButton_3.setVisible(False)
+
+Ensures certian labels and buttons are hidden until needed.
+
+--------------------------------------------------------------------------------------------------------------
+
+    self.deleteButton.clicked.connect(lambda: remove_book_1_from_reading_list(page_stack))
+    self.deleteButton_2.clicked.connect(lambda: remove_book_2_from_reading_list(page_stack))
+    self.deleteButton_3.clicked.connect(lambda: remove_book_3_from_reading_list(page_stack))
+
+Allows books to be removed from reading list by pressing the delete button.
