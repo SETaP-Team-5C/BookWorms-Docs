@@ -94,3 +94,112 @@ Imports for this program as well as craeting `CURRENT_USER` variable. This tells
             self.deleteButton.clicked.connect(lambda: remove_book_1_from_reading_list(page_stack))
             self.deleteButton_2.clicked.connect(lambda: remove_book_2_from_reading_list(page_stack))
             self.deleteButton_3.clicked.connect(lambda: remove_book_3_from_reading_list(page_stack))
+
+### loginPageUI Class
+
+    UI_LoginPage, LP_baseClass = uic.loadUiType("UIs/login_page.ui")
+    class loginPageUI(LP_baseClass, UI_LoginPage):
+        def __init__(self, page_stack):
+            self.page_stack = page_stack
+            super(loginPageUI,self).__init__()
+            self.setupUi(self)
+            
+            # Apply stylesheet for dark mode compatibility
+            dark_mode_stylesheet = """
+                QLineEdit { color: black; background-color: white; }
+                QTextEdit { color: black; background-color: white; }
+                QLabel { color: black; }
+            """
+            # self.setStyleSheet(dark_mode_stylesheet)
+
+            self.loginButton.clicked.connect(self.on_login_button_clicked)
+            self.createAccButton.clicked.connect(self.on_create_account_button_clicked)
+        def on_login_button_clicked(self):
+            uname = self.unameInput.text()
+            with psycopg.connect("REDACTED") as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT * FROM users WHERE username = %s",(uname,))
+                    user = cur.fetchone()
+                    if user:
+                        user = user[1]
+                        print("Login successful")
+                        global CURRENT_USER
+                        CURRENT_USER = user #Set the global variable to the logged in user's information
+                        print(CURRENT_USER)
+                        home_page = homePageUI(self.page_stack)
+                        self.page_stack.removeWidget(self.page_stack.widget(0))
+                        self.page_stack.addWidget(home_page)
+                        self.loginButton.clicked.connect(lambda: login_button_clicked(self.page_stack))
+                    else:
+                        print("Login failed")
+                        self.errorLabel.setText("Invalid username. Please try again or create an account.")
+                        
+
+        def on_create_account_button_clicked(self):
+            if self.unameInput.text() != "":
+                uname = self.unameInput.text()
+                with psycopg.connect("REDACTED") as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT * FROM users WHERE username = %s", (uname,))
+                        user = cur.fetchone()
+                        if not user:
+                            cur.execute("INSERT INTO users (username) VALUES (%s)", (uname,))
+                        else:
+                            self.errorLabel.setText("Username already exists. Please choose a different username.")
+
+Load the the Login page UI 
+
+    UI_LoginPage, LP_baseClass = uic.loadUiType("UIs/login_page.ui")
+        class loginPageUI(LP_baseClass, UI_LoginPage):
+            def __init__(self, page_stack):
+                self.page_stack = page_stack
+                super(loginPageUI,self).__init__()
+                self.setupUi(self)
+                
+                # Apply stylesheet for dark mode compatibility
+                dark_mode_stylesheet = """
+                    QLineEdit { color: black; background-color: white; }
+                    QTextEdit { color: black; background-color: white; }
+                    QLabel { color: black; }
+                """
+                # self.setStyleSheet(dark_mode_stylesheet)
+Login page is the first page in the page stack and is shown to the user. If the user has a dark mode style sheet, the background is set to white and the text is set to black
+
+        self.loginButton.clicked.connect(self.on_login_button_clicked)
+                    self.createAccButton.clicked.connect(self.on_create_account_button_clicked)
+                def on_login_button_clicked(self):
+                    uname = self.unameInput.text()
+                    with psycopg.connect("REDACTED") as conn:
+                        with conn.cursor() as cur:
+                            cur.execute("SELECT * FROM users WHERE username = %s",(uname,))
+                            user = cur.fetchone()
+                            if user:
+                                user = user[1]
+                                print("Login successful")
+                                global CURRENT_USER
+                                CURRENT_USER = user #Set the global variable to the logged in user's information
+                                print(CURRENT_USER)
+                                home_page = homePageUI(self.page_stack)
+                                self.page_stack.removeWidget(self.page_stack.widget(0))
+                                self.page_stack.addWidget(home_page)
+                                self.loginButton.clicked.connect(lambda: login_button_clicked(self.page_stack))
+                            else:
+                                print("Login failed")
+                                self.errorLabel.setText("Invalid username. Please try again or create an account.")
+
+If the user clicks the login button, the text is taken from the username text and then chekced against all the values in our database. If a corresponding match is found, the user will login into to the appliaction, otherwise there will be an error message displayed on the page telling the user That there is an Invalid Username and to either try again or create an account
+
+        def on_create_account_button_clicked(self):
+                    if self.unameInput.text() != "":
+                        uname = self.unameInput.text()
+                        with psycopg.connect("REDACTED") as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("SELECT * FROM users WHERE username = %s", (uname,))
+                                user = cur.fetchone()
+                                if not user:
+                                    cur.execute("INSERT INTO users (username) VALUES (%s)", (uname,))
+                                else:
+                                    self.errorLabel.setText("Username already exists. Please choose a different username.")
+
+If the user clicks the create account button, we first check to make sure there is atleast one character in the input text box and then we connect to our database to check if there are no matching usernames and if there are not, we add the username to our database. The user will have to login again with their matching name to login. If there is an invalid username, there will be an error message on the page
+
