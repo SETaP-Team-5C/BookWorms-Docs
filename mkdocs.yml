@@ -1,0 +1,8 @@
+site_name: BookWorms Documentation
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Requirements: requirements.md
+  - Backend: backend.md
+  - Frontend: frontend.md
+theme: readthedocs
