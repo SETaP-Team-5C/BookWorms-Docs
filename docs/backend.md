@@ -811,3 +811,24 @@ Once the user has pressed the delete Review Button, a query in our database is d
                     cur.execute("INSERT INTO reviews(book_id,usr_id,review_text,rating) VALUES (%s,%s,%s,%s)",(book_id,user_id,reviewText,float(self.RatingBox.currentText())))
 
 Once the user adds a review to a book, we first check to see if the book exists in our database. If it does not, a new book insert is added to the database with its mathcing google_book_id and we retrive the book id afterwads. If the book does exsist in our database, we also retrive the book Id.Afterwards, a check is done using book and usr id to see if there are any corresponding matches of Ids in the review table. If there are, an error message is displayed to the user saying that they have already left a review to the book and are unable to add a new one. Otherwise the review is addded to our database and the widget containing all our reviews is rebuilt to display the new review.
+
+
+bookCover class 
+
+    from PyQt6.QtWidgets import QLabel
+    from PyQt6.QtCore import pyqtSignal, Qt
+
+    class BookCover(QLabel):
+        clicked = pyqtSignal()
+
+        def __init__(self, parent=None):
+            super().__init__(parent)
+
+        def mousePressEvent(self,event):
+            if event.button() == Qt.MouseButton.LeftButton:
+                self.clicked.emit()
+            super().mousePressEvent(event)
+
+Promoted class in the QtDesginer which allows another version of the QLabel class which allows clickable methods of QT designer to be used. This is used to make our book cover images clickable
+
+  
