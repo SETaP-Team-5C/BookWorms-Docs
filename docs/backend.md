@@ -830,5 +830,3 @@ bookCover class
             super().mousePressEvent(event)
 
 Promoted class in the QtDesginer which allows another version of the QLabel class which allows clickable methods of QT designer to be used. This is used to make our book cover images clickable
-
-  
