@@ -23,6 +23,7 @@
 
 Main.py initialises the application by creating the page stack, loading the login page and adding it to the stack. It then starts the execution of the app.
 
+---
 
 ## page_classes.py
 
@@ -47,6 +48,8 @@ Main.py initialises the application by creating the page stack, loading the logi
 Imports for this program as well as craeting `CURRENT_USER` variable. This tells the program what user is currently logged in.
 
 ### homePageUI Class
+
+The Home Page is the center of the app, this is where you can find your currently reading list, friends reading list and recommendations.
 
     UI_Homepage, HP_baseClass = uic.loadUiType("UIs/home_page.ui")
     class homePageUI(HP_baseClass,UI_Homepage):
@@ -179,6 +182,8 @@ Allows books to be removed from reading list by pressing the delete button.
 
 ### bookPageUI Class
 
+This is the page where you can find information on a book, such as author, description etc.
+
     Ui_bookpage, BP_baseClass = uic.loadUiType("UIs/book_page.ui")
     class bookPageGUI(BP_baseClass, Ui_bookpage):
         def __init__(self,page_stack,book_id):
@@ -298,6 +303,8 @@ Updates the labels on screen to match data retrieved from API call.
 
 ### friendsPageUI Class
 
+This is where you can see your friends.
+
     Ui_friendspage, FP_baseClass = uic.loadUiType("UIs/friends_page.ui")
     class friendsPageGUI(FP_baseClass, Ui_friendspage):
         def __init__(self, page_stack):
@@ -372,6 +379,8 @@ and increments the page stack index.
 
 **! Currently this page is not implemented !**
 
+When implemented this will be where you can search for users and add them as a friend.
+
     UI_addfriendpage, AFP_baseClass = uic.loadUiType("UIs/add_friend_page.ui")
         class AddFriendPageGUI(UI_addfriendpage, AFP_baseClass):
             def __init__(self, page_stack):
@@ -407,5 +416,378 @@ Initalises the UI for addFriendsPage as well as the baseClass
         self.setStyleSheet(dark_mode_stylesheet)
 
 Initialises the class and variables. Sets up the UI and assigns a style sheet to it.
+
+---
+
+### profilePageUI Class
+
+This is a users profile containing their biograpgy, reading lists, favourites etc
+
+    Ui_profilepage, PP_baseClass = uic.loadUiType("UIs/profile_page.ui")
+    class profilePageGUI(PP_baseClass, Ui_profilepage):
+        def __init__(self, page_stack):
+            self.page_stack = page_stack
+            super(profilePageGUI,self).__init__()
+            self.setupUi(self)
+            
+            # Apply stylesheet for dark mode compatibility
+            dark_mode_stylesheet = """
+                QLineEdit { color: black; background-color: white; }
+                QTextEdit { color: black; background-color: white; }
+                QLabel { color: black; }
+            """
+            self.setStyleSheet(dark_mode_stylesheet)
+
+            self.homeButton.clicked.connect(lambda : homeButton(self.page_stack))
+            self.SearchButton.clicked.connect(lambda : bookSearchButtonClicked(self.page_stack))
+            self.friendsButton.clicked.connect(lambda : friendButtonClicked(self.page_stack))
+            self.pushButton.clicked.connect(lambda : settingsButtonClicked(self.page_stack))
+            self.goBackButton.clicked.connect(lambda: goBackButtonClicked(self.page_stack))
+
+            self.bookfavoriteslist = [self.Cover1,self.Cover2,self.Cover3]
+            for book in self.bookfavoriteslist:
+                book.setPixmap(QPixmap("imgs/placeholderimage1.webp"))
+                book.clicked.connect(lambda: on_book_cover_clicked(self.page_stack))
+
+`Ui_profilepage, PP_baseClass = uic.loadUiType("UIs/profile_page.ui")`
+
+Initalises the UI for profilePage as well as the baseClass
+
+---
+
+    def __init__(self, page_stack):
+        self.page_stack = page_stack
+        super(profilePageGUI,self).__init__()
+        self.setupUi(self)
+        
+        # Apply stylesheet for dark mode compatibility
+        dark_mode_stylesheet = """
+            QLineEdit { color: black; background-color: white; }
+            QTextEdit { color: black; background-color: white; }
+            QLabel { color: black; }
+        """
+        self.setStyleSheet(dark_mode_stylesheet)
+
+Initialises the class and assigns variables. Sets up the UI and applies a stylesheet to it.
+
+---
+
+    self.homeButton.clicked.connect(lambda : homeButton(self.page_stack))
+    self.SearchButton.clicked.connect(lambda : bookSearchButtonClicked(self.page_stack))
+    self.friendsButton.clicked.connect(lambda : friendButtonClicked(self.page_stack))
+    self.pushButton.clicked.connect(lambda : settingsButtonClicked(self.page_stack))
+    self.goBackButton.clicked.connect(lambda: goBackButtonClicked(self.page_stack))
+
+Adds event listeners to the home bar buttons as well as assigning a function to each button.
+
+---
+
+    self.bookfavoriteslist = [self.Cover1,self.Cover2,self.Cover3]
+    for book in self.bookfavoriteslist:
+        book.setPixmap(QPixmap("imgs/placeholderimage1.webp"))
+        book.clicked.connect(lambda: on_book_cover_clicked(self.page_stack))
+
+Creates a favourite book list and adds an image to each slot as well as an event listener so
+that when clicked it brings the user to the books information page.
+
+---
+
+### settingsPageUI Class
+
+This is where you can adjust your profile settings such as age restrictions or visibility.
+
+**The page has been laid out but there is no functionality as of yet.**
+
+    Ui_settingspage, SP_baseClass = uic.loadUiType("UIs/settings_page.ui")
+    class settingsPageGUI(SP_baseClass, Ui_settingspage):
+        def __init__(self, page_stack):
+            self.page_stack = page_stack
+            super(settingsPageGUI,self).__init__()
+            self.setupUi(self)
+            
+            # Apply stylesheet for dark mode compatibility
+            dark_mode_stylesheet = """
+                QLineEdit { color: black; background-color: white; }
+                QTextEdit { color: black; background-color: white; }
+                QLabel { color: black; }
+            """
+            self.setStyleSheet(dark_mode_stylesheet)
+
+            self.homeButton.clicked.connect(lambda : homeButton(self.page_stack))
+            self.SearchButton.clicked.connect(lambda : bookSearchButtonClicked(self.page_stack))
+            self.friendsButton.clicked.connect(lambda : friendButtonClicked(self.page_stack))
+            self.profileButton.clicked.connect(lambda : profileButtonClicked(self.page_stack))
+            self.goBackButton.clicked.connect(lambda : goBackButtonClicked(self.page_stack))
+
+---
+
+`Ui_settingspage, SP_baseClass = uic.loadUiType("UIs/settings_page.ui")`
+
+Initalises the UI for settingsPage as well as the baseClass
+
+---
+
+    def __init__(self, page_stack):
+        self.page_stack = page_stack
+        super(settingsPageGUI,self).__init__()
+        self.setupUi(self)
+        
+        # Apply stylesheet for dark mode compatibility
+        dark_mode_stylesheet = """
+            QLineEdit { color: black; background-color: white; }
+            QTextEdit { color: black; background-color: white; }
+            QLabel { color: black; }
+        """
+        self.setStyleSheet(dark_mode_stylesheet)
+
+Initialises the class and assigns variables. Sets up the UI and applies a stylesheet to it.
+
+---
+
+    self.homeButton.clicked.connect(lambda : homeButton(self.page_stack))
+    self.SearchButton.clicked.connect(lambda : bookSearchButtonClicked(self.page_stack))
+    self.friendsButton.clicked.connect(lambda : friendButtonClicked(self.page_stack))
+    self.profileButton.clicked.connect(lambda : profileButtonClicked(self.page_stack))
+    self.goBackButton.clicked.connect(lambda : goBackButtonClicked(self.page_stack))
+
+Adds event listeners to the home bar buttons as well as assigning a function to each button.
+
+### Page Navigation Functions
+
+Below are the functions that are called when the menu buttons are clicked. 
+They handle the navigation between pages by adding and removing widgets from the page stack.
+
+---
+
+#### homeButton
+
+    def homeButton(page_stack): #Go back to Home Screen by removing all other pages
+        page_stack.setCurrentIndex(0)
+        for i in range (1,page_stack.count()):
+            removewidgetat = page_stack.widget(1)
+            page_stack.removeWidget(removewidgetat)
+            del removewidgetat
+        return page_stack
+
+---
+
+#### bookSearchButtonClicked
+
+    def bookSearchButtonClicked(page_stack): #Go back to home screen and then load search page 
+        page_stack.setCurrentIndex(0)
+        homeButton(page_stack)
+        searchforbooksUI = searchForBookPageUi(page_stack)
+        page_stack.addWidget(searchforbooksUI)
+        page_stack.setCurrentIndex(1)
+
+        return page_stack
+
+---
+
+#### goBackButtonClicked
+
+    def goBackButtonClicked(page_stack):  #Go back to previous Page
+        page_stack.setCurrentIndex(page_stack.currentIndex()-1)
+        removeindex = page_stack.currentIndex()
+        removeindex = removeindex + 1
+        deletepage = page_stack.widget(removeindex)
+        del deletepage
+        page_stack.removeWidget(page_stack.widget(removeindex))
+        return page_stack
+
+---
+
+#### profileButtonClicked
+
+    def profileButtonClicked(page_stack): #Go to profile page
+    profile_page = profilePageGUI(page_stack)
+    page_stack.addWidget(profile_page)
+    page_stack.setCurrentIndex(page_stack.currentIndex()+1)
+
+    return page_stack
+
+---
+
+#### friendButtonClicked
+
+    def friendButtonClicked(page_stack):
+    friends_page = friendsPageGUI(page_stack)
+    page_stack.addWidget(friends_page)
+    page_stack.setCurrentIndex(page_stack.currentIndex()+1)
+
+    return page_stack
+
+---
+
+#### on_book_cover_clicked
+
+    def on_book_cover_clicked(page_stack,book_id): #Load book Page GUI
+    book_page = bookPageGUI(page_stack,book_id)
+    page_stack.addWidget(book_page)
+    page_stack.setCurrentIndex(page_stack.currentIndex()+1)
+
+    return page_stack
+
+---
+
+#### settingsButtonClicked
+
+    def settingsButtonClicked(page_stack): #Go to settings page
+    settings_page = settingsPageGUI(page_stack)
+    page_stack.addWidget(settings_page)
+    page_stack.setCurrentIndex(page_stack.currentIndex()+1)
+    return page_stack
+
+---
+
+#### viewReviewsButtonClicked
+
+    def viewReviewsButtonClicked(page_stack): #Go to review page
+    review_page = reviewPageGUI(page_stack)
+    page_stack.addWidget(review_page)
+    page_stack.setCurrentIndex(page_stack.currentIndex()+1)
+    return page_stack
+
+---
+
+#### loginButtonClicked
+
+    def login_button_clicked(page_stack):
+    home_page = homePageUI(page_stack)
+    page_stack.removeWidget(page_stack.widget(0))
+    page_stack.addWidget(home_page)
+    return page_stack 
+
+---
+
+### Reading Book Lists
+
+These functions handle clicking on a book to add it to a reading list
+and removing a book from a list.
+
+---
+
+#### currently_reading_book_clicked
+
+When in a books information page you can add it to your reading list. This
+function handles that.
+
+    def Currently_reading_book_clicked(page_stack):
+        home_page = page_stack.widget(0)
+        book_page = page_stack.widget(page_stack.currentIndex())
+        if home_page.titleLabel.text() == "":
+            home_page.Reading1.setPixmap(book_page.label.pixmap())
+            home_page.titleLabel.setText(book_page.title.text())
+            home_page.book_id_label.setText(book_page.google_book_id.text())
+            home_page.deleteButton.setVisible(True)
+            home_page.deleteButton.setEnabled(True)
+            home_page.Reading1.setEnabled(True)
+        elif home_page.titleLabel_2.text() == "":
+            home_page.Reading2.setPixmap(book_page.label.pixmap())
+            home_page.titleLabel_2.setText(book_page.title.text())
+            home_page.label_3.setText(book_page.google_book_id.text())
+            home_page.deleteButton_2.setVisible(True)
+            home_page.deleteButton_2.setEnabled(True)
+            home_page.Reading2.setEnabled(True)
+
+        elif home_page.titleLabel_3.text() == "":
+            home_page.Reading3.setPixmap(book_page.label.pixmap())
+            home_page.titleLabel_3.setText(book_page.title.text())
+            home_page.label_4.setText(book_page.google_book_id.text())
+            home_page.deleteButton_3.setVisible(True)
+            home_page.deleteButton_3.setEnabled(True)
+        else:
+            print("Reading list is full")
+
+        return page_stack
+
+---
+
+`if home_page.titleLabel.text() == "":`
+
+Checks if the first reading list slot is free.
+
+---
+
+    home_page.Reading1.setPixmap(book_page.label.pixmap())
+    home_page.titleLabel.setText(book_page.title.text())
+    home_page.book_id_label.setText(book_page.google_book_id.text())
+    home_page.deleteButton.setVisible(True)
+    home_page.deleteButton.setEnabled(True)
+    home_page.Reading1.setEnabled(True)
+
+Handles adding a book to the first slot of reading list.
+
+---
+
+`if home_page.titleLabe2l.text() == "":`
+
+Checks if the second reading list slot is free.
+
+---
+
+    home_page.Reading2.setPixmap(book_page.label.pixmap())
+    home_page.titleLabel_2.setText(book_page.title.text())
+    home_page.label_3.setText(book_page.google_book_id.text())
+    home_page.deleteButton_2.setVisible(True)
+    home_page.deleteButton_2.setEnabled(True)
+    home_page.Reading2.setEnabled(True)
+
+Handles adding a book to the first slot of reading list.
+
+---
+
+`if home_page.titleLabe3l.text() == "":`
+
+Checks if the third reading list slot is free.
+
+---
+
+    home_page.Reading3.setPixmap(book_page.label.pixmap())
+    home_page.titleLabel_3.setText(book_page.title.text())
+    home_page.label_4.setText(book_page.google_book_id.text())
+    home_page.deleteButton_3.setVisible(True)
+    home_page.deleteButton_3.setEnabled(True)
+
+Handles adding a book to the first slot of reading list.
+
+---
+
+#### remove_book_1_from_reading_list
+
+    def remove_book_1_from_reading_list(page_stack):
+        home_page = page_stack.widget(0)
+        home_page.Reading1.clear()
+        home_page.titleLabel.setText("")
+        home_page.book_id_label.setText("")
+        home_page.deleteButton.setVisible(False)
+        home_page.deleteButton.setEnabled(False)
+        home_page.Reading1.setEnabled(False)
+
+---
+
+#### remove_book_2_from_reading_list
+
+    def remove_book_2_from_reading_list(page_stack):
+        home_page = page_stack.widget(0)
+        home_page.Reading2.clear()
+        home_page.titleLabel_2.setText("")
+        home_page.label_3.setText("")
+        home_page.deleteButton_2.setVisible(False)
+        home_page.deleteButton_2.setEnabled(False)
+        home_page.Reading2.setEnabled(False)
+
+---
+
+#### remove_book_3_from_reading_list
+
+    def remove_book_3_from_reading_list(page_stack):
+        home_page = page_stack.widget(0)
+        home_page.Reading3.clear()
+        home_page.titleLabel_3.setText("")
+        home_page.label_4.setText("")
+        home_page.deleteButton_3.setVisible(False)
+        home_page.deleteButton_3.setEnabled(False)
+        home_page.Reading3.setEnabled(False)
 
 ---
