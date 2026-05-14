@@ -12,3 +12,4 @@
 - requests 2.32.5
 - typing_extensions 4.15.0
 - urllib3 2.6.3
+- beautifulsoup4 4.12.2
